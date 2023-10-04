@@ -3169,7 +3169,7 @@ describe('count queries using aggregate api', () => {
       await runQueryAndExpectCount(count2, 0);
     });
 
-    it('counts with startAt, endAt and offset', async () => {
+    it('counts with startAt, endAt and offset with explicit orderBy', async () => {
       await randomCol.doc('doc1').set({foo: 'bar'});
       await randomCol.doc('doc2').set({foo: 'bar'});
       await randomCol.doc('doc3').set({foo: 'bar'});
@@ -3199,6 +3199,42 @@ describe('count queries using aggregate api', () => {
       const count4 = randomCol
         .orderBy(FieldPath.documentId())
         .endBefore(randomCol.doc('doc3'))
+        .aggregate({count: AggregateField.count()});
+      await runQueryAndExpectCount(count4, 2);
+
+      const count5 = randomCol
+        .offset(6)
+        .aggregate({count: AggregateField.count()});
+      await runQueryAndExpectCount(count5, 1);
+    });
+
+    it('counts with startAt, endAt and offset with implicit orderBy', async () => {
+      await randomCol.doc('doc1').set({foo: 'bar'});
+      await randomCol.doc('doc2').set({foo: 'bar'});
+      await randomCol.doc('doc3').set({foo: 'bar'});
+      await randomCol.doc('doc4').set({foo: 'bar'});
+      await randomCol.doc('doc5').set({foo: 'bar'});
+      await randomCol.doc('doc6').set({foo: 'bar'});
+      await randomCol.doc('doc7').set({foo: 'bar'});
+      const docSnap = await randomCol.doc('doc3').get();
+
+      const count1 = randomCol
+        .startAfter(docSnap)
+        .aggregate({count: AggregateField.count()});
+      await runQueryAndExpectCount(count1, 4);
+
+      const count2 = randomCol
+        .startAt(docSnap)
+        .aggregate({count: AggregateField.count()});
+      await runQueryAndExpectCount(count2, 5);
+
+      const count3 = randomCol
+        .endAt(docSnap)
+        .aggregate({count: AggregateField.count()});
+      await runQueryAndExpectCount(count3, 3);
+
+      const count4 = randomCol
+        .endBefore(docSnap)
         .aggregate({count: AggregateField.count()});
       await runQueryAndExpectCount(count4, 2);
 
@@ -3244,6 +3280,84 @@ describe('Aggregation queries', () => {
       .get();
     expect(snapshot.data().count).to.equal(2);
   });
+
+  it.only('aggregate with startAt, endAt and offset with explicit orderBy', async () => {
+    const testDocs = {
+      a: {author: 'authorA', title: 'titleA', num: 5},
+      b: {author: 'authorB', title: 'titleB', num: 7},
+    };
+    await addTestDocs(testDocs);
+
+    let snapshot = await col
+      .orderBy(FieldPath.documentId())
+      .startAfter(col.doc('a'))
+      .aggregate({sum: AggregateField.sum('num')})
+      .get();
+    expect(snapshot.data().sum).to.equal(7);
+
+    snapshot = await col
+      .orderBy(FieldPath.documentId())
+      .startAt(col.doc('a'))
+      .aggregate({sum: AggregateField.sum('num')})
+      .get();
+    expect(snapshot.data().sum).to.equal(12);
+
+    snapshot = await col
+      .orderBy(FieldPath.documentId())
+      .endAt(col.doc('b'))
+      .aggregate({sum: AggregateField.sum('num')})
+      .get();
+    expect(snapshot.data().sum).to.equal(12);
+
+    snapshot = await col
+      .orderBy(FieldPath.documentId())
+      .endBefore(col.doc('b'))
+      .aggregate({sum: AggregateField.sum('num')})
+      .get();
+    expect(snapshot.data().sum).to.equal(5);
+
+    snapshot = await col
+      .offset(1)
+      .aggregate({sum: AggregateField.sum('num')})
+      .get();
+    expect(snapshot.data().sum).to.equal(7);
+  });
+
+  // it('counts with startAt, endAt and offset with implicit orderBy', async () => {
+  //   await randomCol.doc('doc1').set({foo: 'bar'});
+  //   await randomCol.doc('doc2').set({foo: 'bar'});
+  //   await randomCol.doc('doc3').set({foo: 'bar'});
+  //   await randomCol.doc('doc4').set({foo: 'bar'});
+  //   await randomCol.doc('doc5').set({foo: 'bar'});
+  //   await randomCol.doc('doc6').set({foo: 'bar'});
+  //   await randomCol.doc('doc7').set({foo: 'bar'});
+  //   const docSnap = await randomCol.doc('doc3').get();
+  //
+  //   const count1 = randomCol
+  //     .startAfter(docSnap)
+  //     .aggregate({count: AggregateField.count()});
+  //   await runQueryAndExpectCount(count1, 4);
+  //
+  //   const count2 = randomCol
+  //     .startAt(docSnap)
+  //     .aggregate({count: AggregateField.count()});
+  //   await runQueryAndExpectCount(count2, 5);
+  //
+  //   const count3 = randomCol
+  //     .endAt(docSnap)
+  //     .aggregate({count: AggregateField.count()});
+  //   await runQueryAndExpectCount(count3, 3);
+  //
+  //   const count4 = randomCol
+  //     .endBefore(docSnap)
+  //     .aggregate({count: AggregateField.count()});
+  //   await runQueryAndExpectCount(count4, 2);
+  //
+  //   const count5 = randomCol
+  //     .offset(6)
+  //     .aggregate({count: AggregateField.count()});
+  //   await runQueryAndExpectCount(count5, 1);
+  // });
 
   it('can alias aggregations using aggregate api', async () => {
     const testDocs = {
@@ -5362,7 +5476,7 @@ describe('Client initialization', () => {
     [
       string,
       (coll: CollectionReference) => Promise<unknown>,
-      /* skip */ boolean?,
+      /* skip */ boolean?
     ]
   > = [
     ['CollectionReference.get()', randomColl => randomColl.get()],
