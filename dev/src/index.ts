@@ -1299,7 +1299,7 @@ export class Firestore implements firestore.Firestore {
       1
     );
 
-    const {documents, fieldMask} = parseGetAllArguments(
+    const {documents, fieldMask, readTime} = parseGetAllArguments(
       documentRefsOrReadOptions
     );
     const tag = requestTag();
@@ -1311,6 +1311,7 @@ export class Firestore implements firestore.Firestore {
       .then(() => {
         const reader = new DocumentReader(this, documents);
         reader.fieldMask = fieldMask || undefined;
+        reader.readTime = readTime || undefined;
         return reader.get(tag);
       })
       .catch(err => {

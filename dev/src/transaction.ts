@@ -594,6 +594,7 @@ export function parseGetAllArguments<
 ): {
   documents: Array<DocumentReference<AppModelType, DbModelType>>;
   fieldMask: FieldPath[] | null;
+  readTime: firestore.Timestamp | null;
 } {
   let documents: Array<DocumentReference<AppModelType, DbModelType>>;
   let readOptions: firestore.ReadOptions | undefined = undefined;
@@ -632,7 +633,7 @@ export function parseGetAllArguments<
           FieldPath.fromArgument(fieldPath)
         )
       : null;
-  return {fieldMask, documents};
+  return {fieldMask, documents, readTime: readOptions?.readTime || null};
 }
 
 /**
@@ -680,6 +681,17 @@ function validateReadOptions(
             )} "fieldMask" is not valid: ${err.message}`
           );
         }
+      }
+    }
+
+    if (options.readTime !== undefined) {
+      if (!(options.readTime instanceof firestore.Timestamp)) {
+        throw new Error(
+          `${invalidArgumentMessage(
+            arg,
+            'read option'
+          )} "readTime" is not a Timestamp.`
+        );
       }
     }
   }

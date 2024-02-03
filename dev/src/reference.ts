@@ -284,8 +284,8 @@ export class DocumentReference<
    * });
    * ```
    */
-  get(): Promise<DocumentSnapshot<AppModelType, DbModelType>> {
-    return this._firestore.getAll(this).then(([result]) => result);
+  get(params?: {readTime?: Timestamp}): Promise<DocumentSnapshot<AppModelType, DbModelType>> {
+    return this._firestore.getAll(this, {readTime: params?.readTime}).then(([result]) => result);
   }
 
   /**

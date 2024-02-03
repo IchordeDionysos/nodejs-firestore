@@ -83,8 +83,8 @@ describe('FirestoreTypeConverter', () => {
 
   it("has the additional 'merge' version of toFirestore()", () => {
     interface MyModelType {
-      stringProperty: string;
-      numberProperty: number;
+      stringProperty?: unknown;
+      numberProperty?: unknown;
     }
     const converter = {
       toFirestore(

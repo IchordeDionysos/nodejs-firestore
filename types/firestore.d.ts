@@ -1197,6 +1197,8 @@ declare namespace FirebaseFirestore {
      * set.
      */
     readonly fieldMask?: (string | FieldPath)[];
+
+    readonly readTime?: Timestamp;
   }
 
   /**
@@ -1358,7 +1360,7 @@ declare namespace FirebaseFirestore {
      * @return A Promise resolved with a DocumentSnapshot containing the
      * current document contents.
      */
-    get(): Promise<DocumentSnapshot<AppModelType, DbModelType>>;
+    get(params?: {readTime?: Timestamp}): Promise<DocumentSnapshot<AppModelType, DbModelType>>;
 
     /**
      * Attaches a listener for DocumentSnapshot events.

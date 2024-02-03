@@ -23,6 +23,7 @@ import {logger} from './logger';
 import {Firestore} from './index';
 import {DocumentData} from '@google-cloud/firestore';
 import api = google.firestore.v1;
+import {readTime} from "../test/query";
 
 /**
  * A wrapper around BatchGetDocumentsRequest that retries request upon stream
@@ -34,6 +35,8 @@ import api = google.firestore.v1;
 export class DocumentReader<AppModelType, DbModelType extends DocumentData> {
   /** An optional field mask to apply to this read. */
   fieldMask?: FieldPath[];
+
+  readTime?: google.protobuf.ITimestamp;
   /** An optional transaction ID to use for this read. */
   transactionId?: Uint8Array;
 
@@ -108,6 +111,10 @@ export class DocumentReader<AppModelType, DbModelType extends DocumentData> {
         fieldPath => fieldPath.formattedName
       );
       request.mask = {fieldPaths};
+    }
+
+    if (this.readTime) {
+      request.readTime = this.readTime;
     }
 
     let resultCount = 0;
